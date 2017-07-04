@@ -26,44 +26,43 @@ template <typename T>
 class _Vec2
 {
 public:
-	_Vec2()
+	constexpr _Vec2()
+		:
+		x( 0 ), y( 0 )
 	{}
-	_Vec2( T x,T y )
+	constexpr _Vec2( T x,T y )
 		:
 		x( x ),
 		y( y )
 	{}
-	_Vec2( const _Vec2& vect )
+	constexpr _Vec2( const _Vec2& vect )
 		:
 		_Vec2( vect.x,vect.y )
 	{}
 	template <typename T2>
-	explicit operator _Vec2<T2>() const
+	constexpr explicit operator _Vec2<T2>() const
 	{
 		return{ (T2)x,(T2)y };
 	}
-	T		LenSq() const
+	constexpr T		LenSq() const
 	{
 		return sq( *this );
 	}
-	T		Len() const
+	constexpr T		Len() const
 	{
 		return sqrt( LenSq() );
 	}
 	_Vec2&	Normalize()
 	{
-		const T length = Len();
-		x /= length;
-		y /= length;
+		const auto len = Len();
+		*this *= ( len != static_cast< T >( 0 ) ? 1.f / len : len );
 		return *this;
 	}
-	_Vec2	GetNormalized() const
+	constexpr _Vec2	GetNormalized() const
 	{
-		_Vec2 norm = *this;
-		norm.Normalize();
-		return norm;
+		return _Vec2( *this ).Normalize();
 	}
-	_Vec2	operator-() const
+	constexpr _Vec2	operator-() const
 	{
 		return _Vec2( -x,-y );
 	}
@@ -85,15 +84,15 @@ public:
 		y -= rhs.y;
 		return *this;
 	}
-	T		operator*( const _Vec2 &rhs ) const
+	constexpr T		operator*( const _Vec2 &rhs ) const
 	{
 		return x * rhs.x + y * rhs.y;
 	}
-	_Vec2	operator+( const _Vec2 &rhs ) const
+	constexpr _Vec2	operator+( const _Vec2 &rhs ) const
 	{
 		return _Vec2( *this ) += rhs;
 	}
-	_Vec2	operator-( const _Vec2 &rhs ) const
+	constexpr _Vec2	operator-( const _Vec2 &rhs ) const
 	{
 		return _Vec2( *this ) -= rhs;
 	}
@@ -103,7 +102,7 @@ public:
 		y *= rhs;
 		return *this;
 	}
-	_Vec2	operator*( const T &rhs ) const
+	constexpr _Vec2	operator*( const T &rhs ) const
 	{
 		return _Vec2( *this ) *= rhs;
 	}
@@ -113,19 +112,19 @@ public:
 		y /= rhs;
 		return *this;
 	}
-	_Vec2	operator/( const T &rhs ) const
+	constexpr _Vec2	operator/( const T &rhs ) const
 	{
 		return _Vec2( *this ) /= rhs;
 	}
-	bool	operator==( const _Vec2 &rhs ) const
+	constexpr bool	operator==( const _Vec2 &rhs ) const
 	{
 		return x == rhs.x && y == rhs.y;
 	}
-	bool	operator!=( const _Vec2 &rhs ) const
+	constexpr bool	operator!=( const _Vec2 &rhs ) const
 	{
 		return !(*this == rhs);
 	}
-	_Vec2	InterpolateTo( const _Vec2& dest,T alpha ) const
+	constexpr _Vec2	InterpolateTo( const _Vec2& dest,T alpha ) const
 	{
 		return *this + (dest - *this) * alpha;
 	}
@@ -134,6 +133,16 @@ public:
 	T y;
 };
 
+template<class T>
+_Vec2<T> Reflect( const _Vec2<T> &Direction, const _Vec2<T> &Normal )
+{
+	return Direction - ( Normal * ( 2.f * ( Direction * Normal ) ) );
+}
+
 typedef _Vec2<float> Vec2;
 typedef _Vec2<double> Ved2;
 typedef _Vec2<int> Vei2;
+
+using Vec2f = Vec2;
+using Vec2i = Vei2;
+using Vec2d = Ved2;

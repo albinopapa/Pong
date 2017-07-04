@@ -1,31 +1,38 @@
-/****************************************************************************************** 
- *	Chili DirectX Framework Version 16.10.01											  *	
- *	Keyboard.h																			  *
- *	Copyright 2016 PlanetChili.net <http://www.planetchili.net>							  *
- *																						  *
- *	This file is part of The Chili DirectX Framework.									  *
- *																						  *
- *	The Chili DirectX Framework is free software: you can redistribute it and/or modify	  *
- *	it under the terms of the GNU General Public License as published by				  *
- *	the Free Software Foundation, either version 3 of the License, or					  *
- *	(at your option) any later version.													  *
- *																						  *
- *	The Chili DirectX Framework is distributed in the hope that it will be useful,		  *
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of						  *
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the						  *
- *	GNU General Public License for more details.										  *
- *																						  *
- *	You should have received a copy of the GNU General Public License					  *
- *	along with The Chili DirectX Framework.  If not, see <http://www.gnu.org/licenses/>.  *
- ******************************************************************************************/
 #pragma once
 #include <queue>
 #include <bitset>
+#include "ChiliWin.h"
+#undef DELETE
 
 class Keyboard
 {
 	friend class MainWindow;
 public:
+	enum Key
+	{
+		NIL = 0,
+		BACKSPACE = VK_BACK,
+		TAB = VK_TAB,
+		ENTER = VK_RETURN,
+		SHIFT = VK_SHIFT,
+		CONTROL = VK_CONTROL,
+		ESCAPE = VK_ESCAPE,
+		SPACE = VK_SPACE,
+		PG_UP = VK_PRIOR, 
+		PG_DOWN = VK_NEXT,
+		END = VK_END,
+		HOME = VK_HOME,
+		LEFT = VK_LEFT, UP = VK_UP, RIGHT = VK_RIGHT, DOWN = VK_DOWN,
+		DELETE = VK_DELETE,
+
+		_0 = '0', _1 = '1', _2 = '2', _3 = '3', _4 = '4', 
+		_5 = '5', _6 = '6', _7 = '7', _8 = '8', _9 = '9',
+		A = 'A', B = 'B', C = 'C', D = 'D', E = 'E', F = 'F',
+		G = 'G', H = 'H', I = 'I', J = 'J', K = 'K', L = 'L', 
+		M = 'M', N = 'N', O = 'O', P = 'P', Q = 'Q', R = 'R',
+		S = 'S', T = 'T', U = 'U', V = 'V', W = 'W', Y = 'Y', 
+		Z = 'Z',
+	};
 	class Event
 	{
 	public:
@@ -70,10 +77,10 @@ public:
 	Keyboard() = default;
 	Keyboard( const Keyboard& ) = delete;
 	Keyboard& operator=( const Keyboard& ) = delete;
-	bool KeyIsPressed( unsigned char keycode ) const;
+	bool KeyIsPressed( Key keycode ) const;
 	Event ReadKey();
 	bool KeyIsEmpty() const;
-	char ReadChar();
+	Key ReadChar();
 	bool CharIsEmpty() const;
 	void FlushKey();
 	void FlushChar();
@@ -82,9 +89,9 @@ public:
 	void DisableAutorepeat();
 	bool AutorepeatIsEnabled() const;
 private:
-	void OnKeyPressed( unsigned char keycode );
-	void OnKeyReleased( unsigned char keycode );
-	void OnChar( char character );
+	void OnKeyPressed( Key keycode );
+	void OnKeyReleased( Key keycode );
+	void OnChar( Key character );
 	template<typename T>
 	void TrimBuffer( std::queue<T>& buffer );
 private:
@@ -93,5 +100,5 @@ private:
 	bool autorepeatEnabled = false;
 	std::bitset<nKeys> keystates;
 	std::queue<Event> keybuffer;
-	std::queue<char> charbuffer;
+	std::queue<Keyboard::Key> charbuffer;
 };

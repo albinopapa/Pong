@@ -20,7 +20,7 @@
  ******************************************************************************************/
 #include "Keyboard.h"
 
-bool Keyboard::KeyIsPressed( unsigned char keycode ) const
+bool Keyboard::KeyIsPressed( Key keycode ) const
 {
 	return keystates[keycode];
 }
@@ -44,17 +44,17 @@ bool Keyboard::KeyIsEmpty() const
 	return keybuffer.empty();
 }
 
-char Keyboard::ReadChar()
+Keyboard::Key Keyboard::ReadChar()
 {
 	if( charbuffer.size() > 0u )
 	{
-		unsigned char charcode = charbuffer.front();
+		const auto charcode = charbuffer.front();
 		charbuffer.pop();
 		return charcode;
 	}
 	else
 	{
-		return 0;
+		return NIL;
 	}
 }
 
@@ -70,7 +70,7 @@ void Keyboard::FlushKey()
 
 void Keyboard::FlushChar()
 {
-	std::swap( charbuffer,std::queue<char>() );
+	std::swap( charbuffer,std::queue<Key>() );
 }
 
 void Keyboard::Flush()
@@ -94,28 +94,28 @@ bool Keyboard::AutorepeatIsEnabled() const
 	return autorepeatEnabled;
 }
 
-void Keyboard::OnKeyPressed( unsigned char keycode )
+void Keyboard::OnKeyPressed( Key keycode )
 {
 	keystates[ keycode ] = true;	
 	keybuffer.push( Keyboard::Event( Keyboard::Event::Press,keycode ) );
 	TrimBuffer( keybuffer );
 }
 
-void Keyboard::OnKeyReleased( unsigned char keycode )
+void Keyboard::OnKeyReleased( Key keycode )
 {
 	keystates[ keycode ] = false;
 	keybuffer.push( Keyboard::Event( Keyboard::Event::Release,keycode ) );
 	TrimBuffer( keybuffer );
 }
 
-void Keyboard::OnChar( char character )
+void Keyboard::OnChar( Key character )
 {
 	charbuffer.push( character );
 	TrimBuffer( charbuffer );
 }
 
-template<typename T>
-void Keyboard::TrimBuffer( std::queue<T>& buffer )
+template<typename Ty>
+void Keyboard::TrimBuffer( std::queue<Ty>& buffer )
 {
 	while( buffer.size() > bufferSize )
 	{

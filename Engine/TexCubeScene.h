@@ -19,35 +19,35 @@ public:
 	{}
 	virtual void Update( Keyboard& kbd,Mouse& mouse,float dt ) override
 	{
-		if( kbd.KeyIsPressed( 'Q' ) )
+		if( kbd.KeyIsPressed( Keyboard::Q ) )
 		{
 			theta_x = wrap_angle( theta_x + dTheta * dt );
 		}
-		if( kbd.KeyIsPressed( 'W' ) )
+		if( kbd.KeyIsPressed( Keyboard::W ) )
 		{
 			theta_y = wrap_angle( theta_y + dTheta * dt );
 		}
-		if( kbd.KeyIsPressed( 'E' ) )
+		if( kbd.KeyIsPressed( Keyboard::E ) )
 		{
 			theta_z = wrap_angle( theta_z + dTheta * dt );
 		}
-		if( kbd.KeyIsPressed( 'A' ) )
+		if( kbd.KeyIsPressed( Keyboard::A ) )
 		{
 			theta_x = wrap_angle( theta_x - dTheta * dt );
 		}
-		if( kbd.KeyIsPressed( 'S' ) )
+		if( kbd.KeyIsPressed( Keyboard::S ) )
 		{
 			theta_y = wrap_angle( theta_y - dTheta * dt );
 		}
-		if( kbd.KeyIsPressed( 'D' ) )
+		if( kbd.KeyIsPressed( Keyboard::D ) )
 		{
 			theta_z = wrap_angle( theta_z - dTheta * dt );
 		}
-		if( kbd.KeyIsPressed( 'R' ) )
+		if( kbd.KeyIsPressed( Keyboard::R ) )
 		{
 			offset_z += 2.0f * dt;
 		}
-		if( kbd.KeyIsPressed( 'F' ) )
+		if( kbd.KeyIsPressed( Keyboard::F ) )
 		{
 			offset_z -= 2.0f * dt;
 		}

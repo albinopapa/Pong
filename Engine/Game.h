@@ -1,33 +1,22 @@
-/******************************************************************************************
-*	Chili DirectX Framework Version 16.10.01											  *
-*	Game.h																				  *
-*	Copyright 2016 PlanetChili.net <http://www.planetchili.net>							  *
-*																						  *
-*	This file is part of The Chili DirectX Framework.									  *
-*																						  *
-*	The Chili DirectX Framework is free software: you can redistribute it and/or modify	  *
-*	it under the terms of the GNU General Public License as published by				  *
-*	the Free Software Foundation, either version 3 of the License, or					  *
-*	(at your option) any later version.													  *
-*																						  *
-*	The Chili DirectX Framework is distributed in the hope that it will be useful,		  *
-*	but WITHOUT ANY WARRANTY; without even the implied warranty of						  *
-*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the						  *
-*	GNU General Public License for more details.										  *
-*																						  *
-*	You should have received a copy of the GNU General Public License					  *
-*	along with The Chili DirectX Framework.  If not, see <http://www.gnu.org/licenses/>.  *
-******************************************************************************************/
 #pragma once
 
+#include "Ball.h"
+#include "FrameTimer.h"
 #include "Graphics.h"
+#include "Board.h"
+#include "Wall.h"
+#include "Player.h"
+#include "BoardView.h"
 #include <memory>
 #include <vector>
-#include "Scene.h"
-#include "FrameTimer.h"
 
 class Game
 {
+public:
+	enum class State
+	{
+		Title, Setup, PlayGame, GameOverWin, GameOver
+	};
 public:
 	Game( class MainWindow& wnd );
 	Game( const Game& ) = delete;
@@ -38,9 +27,8 @@ private:
 	void UpdateModel();
 	/********************************/
 	/*  User Functions              */
-	void CycleScenes();
-	void ReverseCycleScenes();
-	void OutputSceneName() const;
+	void CheckForQuit();
+	void SetupGame();
 	/********************************/
 private:
 	MainWindow& wnd;
@@ -48,7 +36,16 @@ private:
 	/********************************/
 	/*  User Variables              */
 	FrameTimer ft;
-	std::vector<std::unique_ptr<Scene>> scenes;
-	std::vector<std::unique_ptr<Scene>>::iterator curScene;
+	State m_state = State::Title;
+	std::string response;
+	int m_numPlayers = 0;
+
+	Board m_board;
+	BoardView m_boardview;
+
+	std::vector<std::unique_ptr<Player>> m_pPlayers;
+
+	Scoreboard m_scoreboard;
+	Scoreboard::Score *m_pWinner = nullptr;
 	/********************************/
 };

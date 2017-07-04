@@ -1,34 +1,21 @@
-/******************************************************************************************
-*	Chili DirectX Framework Version 16.10.01											  *
-*	Graphics.h																			  *
-*	Copyright 2016 PlanetChili <http://www.planetchili.net>								  *
-*																						  *
-*	This file is part of The Chili DirectX Framework.									  *
-*																						  *
-*	The Chili DirectX Framework is free software: you can redistribute it and/or modify	  *
-*	it under the terms of the GNU General Public License as published by				  *
-*	the Free Software Foundation, either version 3 of the License, or					  *
-*	(at your option) any later version.													  *
-*																						  *
-*	The Chili DirectX Framework is distributed in the hope that it will be useful,		  *
-*	but WITHOUT ANY WARRANTY; without even the implied warranty of						  *
-*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the						  *
-*	GNU General Public License for more details.										  *
-*																						  *
-*	You should have received a copy of the GNU General Public License					  *
-*	along with The Chili DirectX Framework.  If not, see <http://www.gnu.org/licenses/>.  *
-******************************************************************************************/
 #pragma once
-#include <d3d11.h>
-#include <wrl.h>
+
+#include "ChiliWin.h"
 #include "GDIPlusManager.h"
 #include "ChiliException.h"
 #include "Surface.h"
 #include "Colors.h"
 #include "Vec2.h"
 #include "TexVertex.h"
+#include <d2d1_1.h>
+#include <d3d11.h>
+#include <dwrite.h>
+#include <wincodec.h>
+#include <wrl.h>
 
 #define CHILI_GFX_EXCEPTION( hr,note ) Graphics::Exception( hr,note,_CRT_WIDE(__FILE__),__LINE__ )
+
+
 
 class Graphics
 {
@@ -55,8 +42,17 @@ public:
 	Graphics( class HWNDKey& key );
 	Graphics( const Graphics& ) = delete;
 	Graphics& operator=( const Graphics& ) = delete;
+
+	void InitDirect3D( HWND WinHandle );
+	void InitWIC();
+	void InitDirect2D();
+	void InitDirectWrite();
+
 	void EndFrame();
 	void BeginFrame();
+	void DrawString( const std::wstring &Str,
+					 const RectF &Field,
+					 Color C);
 	void DrawTriangle( const Vec2& v0,const Vec2& v1,const Vec2& v2,Color c );
 	void DrawTriangleTex( const TexVertex& v0,const TexVertex& v1,const TexVertex& v2,const Surface& tex );
 	void DrawTriangleTexWrap( const TexVertex& v0,const TexVertex& v1,const TexVertex& v2,const Surface& tex );
@@ -65,15 +61,16 @@ public:
 		DrawLine( p1.x,p1.y,p2.x,p2.y,c );
 	}
 	void DrawLine( float x1,float y1,float x2,float y2,Color c );
-	void PutPixel( int x,int y,int r,int g,int b )
+	void DrawRectangle( const RectF &Rect, Color c );
+	void DrawDisc( const Vec2f &Center, float Radius, Color C );
+	void PutPixel( unsigned int x, unsigned int y, unsigned int r, unsigned int g, unsigned int b )
 	{
 		PutPixel( x,y,{ unsigned char( r ),unsigned char( g ),unsigned char( b ) } );
 	}
-	void PutPixel( int x,int y,Color c )
+	void PutPixel( unsigned int x, unsigned int y,Color c )
 	{
 		sysBuffer.PutPixel( x,y,c );
 	}
-	~Graphics();
 private:
 	void DrawFlatTopTriangle( const Vec2& v0,const Vec2& v1,const Vec2& v2,Color c );
 	void DrawFlatBottomTriangle( const Vec2& v0,const Vec2& v1,const Vec2& v2,Color c );
@@ -87,6 +84,20 @@ private:
 							  const TexVertex& dv0,const TexVertex& dv1,TexVertex& itEdge1 );
 private:
 	GDIPlusManager										gdipMan;
+	class COMManager
+	{
+	public:
+		COMManager()
+		{
+			CoInitialize( nullptr );
+		}
+		~COMManager()
+		{
+			CoUninitialize();
+		}
+	}comManager;
+
+	// Direct3D vars
 	Microsoft::WRL::ComPtr<IDXGISwapChain>				pSwapChain;
 	Microsoft::WRL::ComPtr<ID3D11Device>				pDevice;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext>			pImmediateContext;
@@ -99,8 +110,52 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11InputLayout>			pInputLayout;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState>			pSamplerState;
 	D3D11_MAPPED_SUBRESOURCE							mappedSysBufferTexture;
+
+	// Direct2D vars
+	Microsoft::WRL::ComPtr<ID2D1Factory>				pFactory2D;
+	Microsoft::WRL::ComPtr<ID2D1RenderTarget>			pRenderTarget;
+	Microsoft::WRL::ComPtr<ID2D1SolidColorBrush>		pBrush2D;
+
+	// DirectWrite vars
+	Microsoft::WRL::ComPtr<IDWriteFactory>				pFactoryWrite;
+	Microsoft::WRL::ComPtr<IDWriteTextFormat>			pFormat;
+
+	// WIC vars
+	Microsoft::WRL::ComPtr<IWICImagingFactory>			pFactoryImage;
+	Microsoft::WRL::ComPtr<IWICBitmap>					pRenderTargetWIC;
+	
 	Surface												sysBuffer;
 public:
 	static constexpr unsigned int ScreenWidth = 640u;
 	static constexpr unsigned int ScreenHeight = 640u;
 };
+
+inline D2D1_COLOR_F ConvertChiliColor( Color C )
+{
+	const auto invValue = 1.f / 255.f;
+	return D2D1::ColorF(
+		static_cast< float >( C.GetR() ) * invValue,
+		static_cast< float >( C.GetG() ) * invValue,
+		static_cast< float >( C.GetB() ) * invValue,
+		static_cast< float >( C.GetA() ) * invValue
+	);
+}
+inline D2D1_RECT_F ToD2DRectF( const RectF &Rect )
+{
+	return *( reinterpret_cast< const D2D1_RECT_F* >( &Rect ) );
+}
+inline WICRect ToWICRect( const RectF &Rect )
+{
+	WICRect rect;
+	rect.X = static_cast<int>( Rect.left );
+	rect.Y = static_cast<int>( Rect.top );
+	rect.Width = static_cast<int>( Rect.GetWidth() );
+	rect.Height = static_cast<int>( Rect.GetHeight() );
+	return rect;
+}
+
+inline void ThrowIfFail( HRESULT Hr, std::wstring &&Note, unsigned int LineNumber = __LINE__, const wchar_t *Filename = _CRT_WIDE( __FILE__ ) )
+{
+	if( FAILED( Hr ) )
+		throw Graphics::Exception{ Hr, std::move( Note ), Filename, LineNumber };
+}

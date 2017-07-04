@@ -155,3 +155,34 @@ void Surface::Copy( const Surface & src )
 		}
 	}
 }
+
+WicSurface::WicSurface( Microsoft::WRL::ComPtr<IWICBitmap> pBitmap,
+						const WICRect &Rect,
+						WICBitmapLockFlags Flags )
+{
+	pBitmap->Lock( &Rect, Flags, &pLock );
+	pLock->GetSize( &width, &height );
+	pLock->GetStride( &stride );
+	UINT size = 0u;
+	pLock->GetDataPointer( &size, reinterpret_cast< BYTE** >( &pPixels ) );
+}
+
+UINT WicSurface::Width() const
+{
+	return width;
+}
+
+UINT WicSurface::Height() const
+{
+	return height;
+}
+
+UINT WicSurface::Stride() const
+{
+	return stride;
+}
+
+Color WicSurface::Pixel( int X, int Y ) const
+{
+	return pPixels[ X + ( Y * ( stride >> 2 ) ) ];
+}

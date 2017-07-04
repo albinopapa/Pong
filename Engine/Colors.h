@@ -40,7 +40,7 @@ public:
 	{}
 	constexpr Color( unsigned char r,unsigned char g,unsigned char b )
 		:
-		dword( (r << 16u) | (g << 8u) | b )
+		dword( ( 255u << 24u ) | ( r << 16u ) | ( g << 8u ) | b )
 	{}
 	constexpr Color( Color col,unsigned char x )
 		:
@@ -91,13 +91,22 @@ public:
 	{
 		dword = (dword & 0xFFFFFF00u) | b;
 	}
+
+	bool operator==( const Color &C )const
+	{
+		return dword == C.dword;
+	}
+	bool operator!=( const Color &C )const
+	{
+		return !( *this == C );
+	}
 };
 
 namespace Colors
 {
 	static constexpr Color MakeRGB( unsigned char r,unsigned char g,unsigned char b )
 	{
-		return (r << 16) | (g << 8) | b;
+		return (255u << 24u ) | (r << 16) | (g << 8) | b;
 	}
 	static constexpr Color White = MakeRGB( 255u,255u,255u );
 	static constexpr Color Black = MakeRGB( 0u,0u,0u );

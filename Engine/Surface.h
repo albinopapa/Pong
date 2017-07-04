@@ -83,8 +83,6 @@ public:
 	}
 	void PutPixel( unsigned int x,unsigned int y,Color c )
 	{
-		assert( x >= 0 );
-		assert( y >= 0 );
 		assert( x < width );
 		assert( y < height );
 		pBuffer[y * pitch + x] = c;
@@ -141,4 +139,26 @@ private:
 	unsigned int width;
 	unsigned int height;
 	unsigned int pitch; // pitch is in PIXELS, not bytes!
+};
+
+#include <wrl/client.h>
+#include <wincodec.h>
+
+class WicSurface
+{
+public:
+	WicSurface() = default;
+	WicSurface( 
+		Microsoft::WRL::ComPtr<IWICBitmap> pBitmap, 
+		const WICRect &Rect, 
+		WICBitmapLockFlags Flags );
+	UINT Width()const;
+	UINT Height()const;
+	UINT Stride()const;
+	Color Pixel( int X, int Y )const;
+
+private:
+	Microsoft::WRL::ComPtr<IWICBitmapLock> pLock;
+	UINT width, height, stride;
+	Color *pPixels;
 };

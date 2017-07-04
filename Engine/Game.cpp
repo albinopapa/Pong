@@ -1,59 +1,16 @@
-/******************************************************************************************
-*	Chili DirectX Framework Version 16.10.01											  *
-*	Game.cpp																			  *
-*	Copyright 2016 PlanetChili.net <http://www.planetchili.net>							  *
-*																						  *
-*	This file is part of The Chili DirectX Framework.									  *
-*																						  *
-*	The Chili DirectX Framework is free software: you can redistribute it and/or modify	  *
-*	it under the terms of the GNU General Public License as published by				  *
-*	the Free Software Foundation, either version 3 of the License, or					  *
-*	(at your option) any later version.													  *
-*																						  *
-*	The Chili DirectX Framework is distributed in the hope that it will be useful,		  *
-*	but WITHOUT ANY WARRANTY; without even the implied warranty of						  *
-*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the						  *
-*	GNU General Public License for more details.										  *
-*																						  *
-*	You should have received a copy of the GNU General Public License					  *
-*	along with The Chili DirectX Framework.  If not, see <http://www.gnu.org/licenses/>.  *
-******************************************************************************************/
 #include "MainWindow.h"
 #include "Game.h"
-#include "SolidCubeScene.h"
-#include "CubeOrderScene.h"
-#include "ConHexScene.h"
-#include "ConHexWireScene.h"
-#include "XMutualScene.h"
-#include "TexCubeScene.h"
-#include "TexWrapCubeScene.h"
-#include "FoldedCubeScene.h"
-#include "FoldedCubeWrapScene.h"
-#include "CubeSkinnedScene.h"
-#include <sstream>
+#include "Human.h"
+#include "Computer.h"
 
 Game::Game( MainWindow& wnd )
 	:
 	wnd( wnd ),
-	gfx( wnd )
+	gfx( wnd ),
+	m_pPlayers( 2 ),
+	m_boardview( m_scoreboard, m_board )
 {
-	scenes.push_back( std::make_unique<SolidCubeScene>() );
-	scenes.push_back( std::make_unique<CubeOrderScene>() );
-	scenes.push_back( std::make_unique<ConHexScene>() );
-	scenes.push_back( std::make_unique<ConHexWireScene>() );
-	scenes.push_back( std::make_unique<XMutualScene>() );
-	scenes.push_back( std::make_unique<TexCubeScene>() );
-	scenes.push_back( std::make_unique<TexCubeScene>( 2.0f ) );
-	scenes.push_back( std::make_unique<TexWrapCubeScene>( 2.0f ) );
-	scenes.push_back( std::make_unique<TexWrapCubeScene>( 6.0f ) );
-	scenes.push_back( std::make_unique<TexWrapCubeScene>( L"images\\wood.jpg",2.0f ) );
-	scenes.push_back( std::make_unique<FoldedCubeScene>() );
-	scenes.push_back( std::make_unique<FoldedCubeWrapScene>() );
-	scenes.push_back( std::make_unique<CubeSkinnedScene>( L"images\\dice_skin.png" ) );
-	scenes.push_back( std::make_unique<CubeSkinnedScene>( L"images\\office_skin.jpg" ) );
-	scenes.push_back( std::make_unique<CubeSkinnedScene>( L"images\\office_skin_lores.png" ) );
-	curScene = scenes.begin();
-	OutputSceneName();
+	m_board.BuildLevel();
 }
 
 void Game::Go()
@@ -67,65 +24,174 @@ void Game::Go()
 void Game::UpdateModel()
 {
 	const float dt = ft.Mark();
-	// cycle through scenes when tab is pressed
+	CheckForQuit();
+	switch( m_state )
+	{
+		case State::Title:
+			if( wnd.kbd.KeyIsPressed( Keyboard::ENTER ) )
+			{
+				m_state = State::Setup;
+			}
+			break;
+		case State::Setup:
+			SetupGame();
+			break;
+		case State::PlayGame:
+		{
+			m_board.Update( dt, m_pPlayers );
+			m_board.HandleCollisions();
+			if( m_board.BallOutOfBounds( m_pPlayers ) )
+			{
+				m_board.Reset();
+			}
+			for( auto &pPlayer : m_pPlayers )
+			{
+				if( pPlayer->GetScore() == 10 )
+				{
+					m_pWinner = &pPlayer->GetScore();
+					m_state = State::GameOverWin;
+				}
+			}
+			break;
+		}
+		case State::GameOverWin:
+			if( wnd.kbd.KeyIsPressed( Keyboard::ENTER ) )
+			{
+				m_state = State::GameOver;
+			}
+			break;
+		case State::GameOver:
+			m_board.Reset();
+			for( auto &pPlayer : m_pPlayers )
+			{
+				pPlayer->GetScore().Reset();
+			}
+
+			m_state = State::Title;
+			break;
+	}
+
+}
+
+void Game::CheckForQuit()
+{
 	while( !wnd.kbd.KeyIsEmpty() )
 	{
 		const auto e = wnd.kbd.ReadKey();
-		if( e.GetCode() == VK_TAB && e.IsPress() )
-		{
-			if( wnd.kbd.KeyIsPressed( VK_SHIFT ) )
-			{
-				ReverseCycleScenes();
-			}
-			else
-			{
-				CycleScenes();
-			}
-		}
-		else if( e.GetCode() == VK_ESCAPE && e.IsPress() )
+		if( e.GetCode() == Keyboard::ESCAPE && e.IsPress() )
 		{
 			wnd.Kill();
 		}
 	}
-	// update scene
-	(*curScene)->Update( wnd.kbd,wnd.mouse,dt );
 }
 
-void Game::CycleScenes()
+void Game::SetupGame()
 {
-	if( ++curScene == scenes.end() )
+	while( !wnd.kbd.CharIsEmpty() )
 	{
-		curScene = scenes.begin();
-	}
-	OutputSceneName();
-}
+		const auto key = static_cast< char >( wnd.kbd.ReadChar() );
+		if( key == '1' || key == '2' )
+		{
+			m_numPlayers = static_cast< int >( key - '0' );
 
-void Game::ReverseCycleScenes()
-{
-	if( curScene == scenes.begin() )
-	{
-		curScene = scenes.end() - 1;
-	}
-	else
-	{
-		--curScene;
-	}
-	OutputSceneName();
-}
+			switch( m_numPlayers )
+			{
+				case 1:
+				{
+					m_pPlayers[ 0 ] =
+						std::make_unique<Human>(
+							wnd.kbd,
+							"Player1",
+							Scoreboard::m_scoreboxX + 5.f + 64.f,
+							Paddle::PaddleInput( Keyboard::W, Keyboard::S )
+							);
+					m_pPlayers[ 1 ] =
+						std::make_unique<Computer>(
+							m_board.GetBall(),
+							"Computer",
+							Scoreboard::m_scoreboxX + 5.f + ( 64.f * 2.f )
+							);
+					break;
+				}
+				case 2:
+				{
+					m_pPlayers[ 0 ] =
+						std::make_unique<Human>(
+							wnd.kbd,
+							"Player1",
+							Scoreboard::m_scoreboxX + 5.f + 64.f,
+							Paddle::PaddleInput( Keyboard::W, Keyboard::S )
+							);
+					m_pPlayers[ 1 ] =
+						std::make_unique<Human>(
+							wnd.kbd,
+							"Player2",
+							Scoreboard::m_scoreboxX + 5.f + ( 64.f * 2.f ),
+							Paddle::PaddleInput( Keyboard::UP, Keyboard::DOWN )
+							);
+					break;
+				}
+			}
 
-void Game::OutputSceneName() const
-{
-	std::stringstream ss;
-	const std::string stars( (*curScene)->GetName().size() + 4,'*' );
+			for( auto &pPlayer : m_pPlayers )
+			{
+				m_scoreboard.RegisterPlayer( &pPlayer->GetScore() );
+			}
 
-	ss << stars << std::endl 
-		<< "* " << (*curScene)->GetName() << " *" << std::endl 
-		<< stars << std::endl;
-	OutputDebugStringA( ss.str().c_str() );
+			response.push_back( key );
+			m_state = State::PlayGame;
+		}
+	}	
 }
 
 void Game::ComposeFrame()
 {
-	// draw scene
-	(*curScene)->Draw( gfx );
+	switch( m_state )
+	{
+		case State::PlayGame:
+			m_boardview.Draw( gfx );
+			break;
+		case State::Title:
+		{
+			// TODO: Create intro screen
+			constexpr auto left = static_cast< float >( Graphics::ScreenWidth >> 2 );
+			constexpr auto top = static_cast< float >( ( Graphics::ScreenHeight >> 2 ) + 64 );
+			constexpr auto right = left + ( left * 2.f);
+			constexpr auto bottom = top + top;
+			constexpr RectF textRect{ left, top, right, bottom };
+
+			gfx.DrawString( L"Press ENTER to start.", textRect, Colors::White );
+			break;
+		}
+		case State::Setup:
+		{
+			constexpr auto left = static_cast< float >( Graphics::ScreenWidth >> 2 );
+			constexpr auto top = static_cast< float >( ( Graphics::ScreenHeight >> 2 ) + 64 );
+			constexpr auto right = left + ( left * 2.f );
+			constexpr auto bottom = top + top;
+			constexpr RectF textRect{ left, top, right, bottom };
+
+			std::wstring wResponse( response.begin(), response.end() );
+			gfx.DrawString( L"How many players? ( 1 or 2 ) " + wResponse, textRect, Colors::White );
+
+			break;
+		}
+		case State::GameOverWin:
+		{
+			// TODO: Create intro screen
+			constexpr auto left = static_cast< float >( Graphics::ScreenWidth >> 2 );
+			constexpr auto top = static_cast< float >( ( ( Graphics::ScreenHeight >> 2 ) ) + 64 );
+			constexpr auto right = left + ( left * 2.f );
+			constexpr auto bottom = top + top;
+			constexpr RectF textRect{ left, top, right, bottom };
+
+			const auto wplayername = std::wstring( m_pWinner->GetName().begin(), m_pWinner->GetName().end() ) + L" WINS!!!\n\nPress ENTER to play again, ESC to exit.";
+			gfx.DrawString( wplayername, textRect, Colors::White );
+
+			break;
+		}
+		case State::GameOver:
+			// TODO: Create reset message
+			break;
+	}
 }
