@@ -188,7 +188,9 @@ void Game::ComposeFrame()
 			constexpr auto bottom = top + top;
 			constexpr RectF textRect{ left, top, right, bottom };
 
-			const auto wplayername = std::wstring( m_pWinner->GetName().begin(), m_pWinner->GetName().end() ) + L" WINS!!!\n\nPress ENTER to play again, ESC to exit.";
+			const auto wplayername = 
+				std::wstring( m_pWinner->GetName().begin(), m_pWinner->GetName().end() ) + 
+				std::wstring( L" WINS!!!\n\nPress ENTER to play again, ESC to exit." );
 			gfx.DrawString( wplayername, textRect, Colors::White );
 
 			break;

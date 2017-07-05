@@ -25,7 +25,7 @@ private:
 	static constexpr Vec2f m_startPosition = { 
 		static_cast< float >( Graphics::ScreenWidth >> 1 ), 
 		static_cast< float >( Graphics::ScreenHeight >> 1 ) };
-	static constexpr Vec2f m_maxVelocity = { 5.f * 60.f, 5.f * 60.f };
+	static constexpr Vec2f m_maxVelocity = { 7.f * 60.f, 7.f * 60.f };
 	static constexpr float m_radius = 10.f;
 	
 	Vec2f m_position, m_velocity;

@@ -30,7 +30,7 @@ public:
 	left( Left ),
 	right( Right )
 	{}
-	constexpr _Rect( const Vec2<T> &LeftTop, const Size_t<T> &Size )
+	constexpr _Rect( const _Vec2<T> &LeftTop, const Size_t<T> &Size )
 		:
 		_Rect( LeftTop.x, LeftTop.y, LeftTop.x + Size.width, LeftTop.y + Size.height )
 	{}
