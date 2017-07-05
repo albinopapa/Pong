@@ -13,8 +13,19 @@ public:
 		width( 0 ), height( 0 )
 	{
 	}
-
-
+	constexpr Size_t( T Width, T Height )
+		:
+		width( Width ), height( Height )
+	{
+	}
+	template<class T2>
+	operator Size_t<T2>()
+	{
+		return Size_t<T2>(
+			static_cast< T2 >( width ),
+			static_cast< T2 >( height )
+			);
+	}
 
 	T width, height;
 };

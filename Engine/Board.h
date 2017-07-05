@@ -38,8 +38,7 @@ private:
 private:
 	Ball m_ball;
 	std::array<Paddle, 2> m_paddles;
-
-	std::array<Wall, 4> m_walls;
+	std::vector<Wall> m_walls;
 public:
 	static constexpr float m_boundsLeft = 0.f;
 	static constexpr float m_boundsTop = 0.f;

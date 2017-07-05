@@ -1,5 +1,6 @@
 #include "Board.h"
 #include "Player.h"
+#include <algorithm>
 
 Paddle MakePaddle( float YPos  )
 {
@@ -116,17 +117,22 @@ bool Board::BallIsInBounds( const RectF &BallRect, const RectF & Bounds ) const
 
 void Board::BuildLevel()
 {
+	// Obstacles
+	constexpr auto left = 100;
+	constexpr auto top = 100;
+	constexpr auto right = Graphics::ScreenWidth - 100;
+	constexpr auto bottom = Graphics::ScreenHeight - 100;
+
+	WallGenerator gen( left, top, right - left, bottom - top );
+	const auto walls = gen( Size_t<int>{ 10, 10 }, Size_t<int>{ 20, 20 }, 4 );
+	m_walls.resize( 2 );
+
 	// 0 = Top wall, 1 = bottom wall
 	m_walls[ 0 ] = { RectF{ 0.f, 0.f, m_boundsRight, m_wallThickness } };
 	m_walls[ 1 ] = {
-	RectF{ m_wallThickness, m_boundsBottom - m_wallThickness, m_boundsRight, m_boundsBottom }
+		RectF{ m_wallThickness, m_boundsBottom - m_wallThickness, m_boundsRight, m_boundsBottom }
 	};
-
-	// Obstacles
-	m_walls[ 2 ] = { RectF( 100.f, 100.f, 100.f + m_wallThickness, 200.f ) };
-	m_walls[ 3 ] = { RectF(
-	Vec2f{ ( m_boundsRight - 100.f ), ( m_boundsBottom - 200.f ) },
-	Vec2f{ ( m_boundsRight - 100.f ) + m_wallThickness, ( m_boundsBottom - 200.f ) - 100.f } ) };
+	m_walls.insert( m_walls.begin() + 2, walls.begin(), walls.end() );
 }
 
 void Board::Reset()
