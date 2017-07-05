@@ -77,7 +77,61 @@ std::vector<Wall> WallGenerator::operator()( const Size_t<int>& MinValues, const
 {
 	std::random_device rd;
 	std::mt19937 rng( rd() );
-	std::uniform_int_distribution<int> wDist( MinValues.width, MaxValues.width );
+	std::uniform_int_distribution<int> orientationDist( 0, 1 );
+	enum class Orientation
+	{
+		horizontal, vertical
+	};
+	Orientation orientation;
+	auto MakeWall = [ &orientationDist, &rng, this ](Orientation Orient)
+	{
+		auto CalcRect = [ &rng, Orient, this ]()
+		{
+			constexpr float length = 50.f;
+			constexpr float width = 10.f;
+			constexpr float halfLength = length * .5;
+			constexpr float halfWidth = width * .5f;
+
+			if( Orient == Orientation::horizontal )
+			{
+				std::uniform_real_distribution<float> xDist(
+					m_bounds.left + halfLength, m_bounds.right - halfLength );
+				std::uniform_real_distribution<float> yDist(
+					m_bounds.top + halfWidth, m_bounds.bottom - halfWidth );
+
+				return RectF( 
+					xDist( rng ) - halfLength,
+					yDist( rng ) - halfWidth, 
+					Size_t<float>{length, width} );
+
+			}
+			else
+			{
+				std::uniform_real_distribution<float> xDist(
+					m_bounds.left + halfWidth, m_bounds.right - halfWidth );
+				std::uniform_real_distribution<float> yDist(
+					m_bounds.top + halfLength, m_bounds.bottom - halfLength );
+
+				return RectF(
+					xDist( rng ) - halfWidth, 
+					yDist( rng ) - halfLength, 
+					Size_t<float>{width, length} );
+			}
+		};
+
+		return Wall( CalcRect() );
+	};
+
+	std::vector<Wall> walls( Count );
+	for( auto &wall : walls )
+	{
+		wall = MakeWall( 
+			orientationDist( rng ) == 0 ?
+			Orientation::horizontal : Orientation::vertical 
+		);
+	}
+	return walls;
+	/*std::uniform_int_distribution<int> wDist( MinValues.width, MaxValues.width );
 	std::uniform_int_distribution<int> hDist( MinValues.height, MaxValues.height );
 	std::uniform_real_distribution<float> xDist( m_bounds.left, m_bounds.right );
 	std::uniform_real_distribution<float> yDist( m_bounds.top, m_bounds.bottom );
@@ -104,5 +158,5 @@ std::vector<Wall> WallGenerator::operator()( const Size_t<int>& MinValues, const
 		walls[i] = MakeWall();
 	}
 
-	return walls;
+	return walls;*/
 }
