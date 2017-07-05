@@ -250,3 +250,4 @@ ModelManifest.xml
 
 # Precompiled shader bytecode headers
 *.shh
+*.zip

@@ -5,6 +5,19 @@
 #undef min
 #undef max
 
+template<class T>class Size_t
+{
+public: 
+	constexpr Size_t()
+		:
+		width( 0 ), height( 0 )
+	{
+	}
+
+
+
+	T width, height;
+};
 template < typename T >
 class _Rect
 {
@@ -17,13 +30,15 @@ public:
 	left( Left ),
 	right( Right )
 	{}
-	constexpr _Rect( const _Rect& rect )
+	constexpr _Rect( const Vec2<T> &LeftTop, const Size_t<T> &Size )
 		:
-	top( rect.top ),
-	bottom( rect.bottom ),
-	left( rect.left ),
-	right( rect.right )
+		_Rect( LeftTop.x, LeftTop.y, LeftTop.x + Size.width, LeftTop.y + Size.height )
 	{}
+	constexpr _Rect( float Left, float Top, const Size_t<T> &Size )
+		:
+		_Rect( _Vec2<T>{ Left, Top }, _Vec2<T>{ Left + Size.width, Top + Size.height } )
+	{}
+
 	constexpr _Rect( const _Vec2<T> &p0, const _Vec2<T> &p1 )
 		:
 		_Rect( std::min( p0.x, p1.x ), std::min( p0.y, p1.y ),

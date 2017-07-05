@@ -165,14 +165,17 @@ void Game::ComposeFrame()
 		}
 		case State::Setup:
 		{
+			const std::wstring wResponse =
+				std::wstring( L"How many players? ( 1 or 2 ) " ) +
+				std::wstring( response.begin(), response.end() );
+
 			constexpr auto left = static_cast< float >( Graphics::ScreenWidth >> 2 );
 			constexpr auto top = static_cast< float >( ( Graphics::ScreenHeight >> 2 ) + 64 );
 			constexpr auto right = left + ( left * 2.f );
 			constexpr auto bottom = top + top;
 			constexpr RectF textRect{ left, top, right, bottom };
 
-			std::wstring wResponse( response.begin(), response.end() );
-			gfx.DrawString( L"How many players? ( 1 or 2 ) " + wResponse, textRect, Colors::White );
+			gfx.DrawString( wResponse, textRect, Colors::White );
 
 			break;
 		}
