@@ -105,12 +105,14 @@ void Game::SetupGame()
 							Scoreboard::m_scoreboxX + 5.f + 64.f,
 							Paddle::PaddleInput( Keyboard::W, Keyboard::S )
 							);
-					m_pPlayers[ 1 ] =
-						std::make_unique<Computer>(
-							m_board.GetBall(),
-							"Computer",
-							Scoreboard::m_scoreboxX + 5.f + ( 64.f * 2.f )
-							);
+					auto computer = std::make_unique<Computer>(
+						m_board.GetBall(),
+						"Computer",
+						Scoreboard::m_scoreboxX + 5.f + ( 64.f * 2.f )
+						);
+					m_board.AddObserver( computer->GetObserver() );
+					m_pPlayers[ 1 ] = std::move( computer );
+					
 					break;
 				}
 				case 2:

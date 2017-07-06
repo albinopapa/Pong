@@ -162,6 +162,7 @@
     <ClInclude Include="GDIPlusManager.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="Human.h" />
+    <ClInclude Include="Observer.h" />
     <ClInclude Include="Paddle.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Scoreboard.h" />

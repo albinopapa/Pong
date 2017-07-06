@@ -13,6 +13,11 @@ Board::Board()
 {
 }
 
+void Board::AddObserver( Observer * pObserver )
+{
+	m_pObservers.push_back( pObserver );
+}
+
 void Board::Update( float DeltaTime, std::vector<std::unique_ptr<Player>> &pPlayers )
 {
 	for( size_t i = 0; i < pPlayers.size(); ++i)
@@ -28,24 +33,41 @@ void Board::Update( float DeltaTime, std::vector<std::unique_ptr<Player>> &pPlay
 
 void Board::HandleCollisions()
 {
+	bool colliding = false;
 	const auto ballRect = m_ball.GetRect();
+	const auto ballPos = m_ball.GetPosition();
+
 	for( auto &wall : m_walls )
 	{
 		if( BallIsCollidingWith( ballRect, wall.GetRect() ) )
 		{
 			const auto wallrect = wall.GetRect();
-			const auto normal = CalculateNormalFrom( wallrect, m_ball.GetPosition() );
+			const auto normal = CalculateNormalFrom( wallrect, ballPos );
 
 			DoRebound( wallrect, normal );
+			colliding = true;
 		}
 	}
 
-	for( auto &paddle : m_paddles )
+	if( !colliding )
 	{
-		if( BallIsCollidingWith( ballRect, paddle.GetRect() ) )
+		for( auto &paddle : m_paddles )
 		{
-			DoRebound( paddle.GetRect(), paddle.GetNormal() );
-			m_ball.IncreaseSpeed();
+			const auto padRect = paddle.GetRect();
+			if( BallIsCollidingWith( ballRect, padRect ) )
+			{
+				DoRebound( padRect, CalculateNormalFrom( padRect, ballPos ) );
+				m_ball.IncreaseSpeed();
+				colliding = true;
+			}
+		}
+	}
+
+	if( colliding )
+	{
+		for( auto &pObserver : m_pObservers )
+		{
+			pObserver->OnNotify( *this );
 		}
 	}
 }

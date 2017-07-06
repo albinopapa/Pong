@@ -6,11 +6,14 @@
 #include "Scoreboard.h"
 #include "Wall.h"
 #include <array>
+#include "Observer.h"
 
 class Board
 {
 public:
 	Board();
+	
+	void AddObserver( Observer *pObserver );
 
 	void Update( float DeltaTime, std::vector<std::unique_ptr<Player>> &pPlayers );
 	void HandleCollisions();
@@ -39,6 +42,7 @@ private:
 	Ball m_ball;
 	std::array<Paddle, 2> m_paddles;
 	std::vector<Wall> m_walls;
+	std::vector<Observer *> m_pObservers;
 public:
 	static constexpr float m_boundsLeft = 0.f;
 	static constexpr float m_boundsTop = 0.f;
