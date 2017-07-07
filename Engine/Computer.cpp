@@ -23,22 +23,37 @@ void Computer::Update( float DeltaTime, Paddle &Pad )
 	
 	if( m_target.y > padBottom )
 	{
-		Pad.OnMove( Paddle::Direction::DOWN, DeltaTime );
+		m_responseDelayCounter += DeltaTime;
+		if( m_currentDirection == Paddle::Direction::DOWN ||
+			m_responseDelayCounter >= m_responseDelay )
+		{
+			m_currentDirection = Paddle::Direction::DOWN;
+			Pad.OnMove( Paddle::Direction::DOWN, DeltaTime );
+			m_responseDelayCounter = 0.f;
+		}		
 	}
 	else if( m_target.y < padTop )
 	{
-		Pad.OnMove( Paddle::Direction::UP, DeltaTime );
+		m_responseDelayCounter += DeltaTime;
+		if( m_currentDirection == Paddle::Direction::UP ||
+			m_responseDelayCounter >= m_responseDelay )
+		{
+			m_currentDirection = Paddle::Direction::UP;
+			Pad.OnMove( Paddle::Direction::UP, DeltaTime );
+			m_responseDelayCounter = 0.f;
+		}		
 	}
 	else
 	{
-		Pad.OnMove( Paddle::Direction::IDLE, DeltaTime );
-		m_targetSet = false;
+		m_responseDelayCounter += DeltaTime;
+		if( m_currentDirection == Paddle::Direction::IDLE ||
+			m_responseDelayCounter >= m_responseDelay )
+		{
+			m_currentDirection = Paddle::Direction::IDLE;
+			m_responseDelayCounter = 0.f;
+			m_targetSet = false;
+		}
 	}
-}
-
-Computer::BounceObserver *Computer::GetObserver()
-{
-	return &m_observer;
 }
 
 void Computer::CalculateTarget( const Paddle &Pad )
@@ -60,6 +75,11 @@ void Computer::CalculateTarget( const Paddle &Pad )
 	{
 		m_target = { padPos.x, static_cast< float >( Graphics::ScreenHeight >> 1 ) };
 	}
+}
+
+Computer::BounceObserver *Computer::GetObserver()
+{
+	return &m_observer;
 }
 
 Computer::BounceObserver::BounceObserver( Computer & Parent )
